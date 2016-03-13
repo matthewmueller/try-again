@@ -9,7 +9,13 @@ var Backoff = require('backo')
 var once = require('once')
 
 /**
- * Export `again`
+ * Export `Again`
+ */
+
+module.exports = Again
+
+/**
+ * Create an `Again` instance
  */
 
 function Again (options) {

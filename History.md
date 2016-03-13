@@ -1,4 +1,14 @@
 
+1.0.4 / 2016-03-14
+==================
+
+  * export again
+
+1.0.3 / 2016-03-14
+==================
+
+  * ensure that old successes arent called add timeout support
+
 1.0.2 / 2016-03-14
 ==================
 
