@@ -39,6 +39,8 @@ function unsuccessful (err) {
 
 `failure` may be called after `success` has been called, but `success` will be a noop if `failure` has been called. This is to prevent multiple `success` functions from running if the connection is eventually successful.
 
+The function inside `again` will be called multiple times when there is a failure, so it's important that everything inside that function is idempotent.
+
 ## License
 
 (The MIT License)
