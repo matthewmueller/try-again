@@ -1,6 +1,6 @@
 {
   "name": "try-again",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Generic retry module with exponential backoff",
   "keywords": [],
   "author": "Matthew Mueller <mattmuelle@gmail.com>",
