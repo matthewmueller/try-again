@@ -15,26 +15,50 @@ var once = require('once')
 function Again (options) {
   options = options || {}
   options.jitter = options.jitter || .3
+  options.timeout = options.timeout || 5000
 
   return function again (fn, unsuccessful) {
     unsuccessful = unsuccessful || function(){}
-
+    var timeout = options.timeout || 5000
     var retries = options.retries || 7
     var backo = new Backoff(options)
+    var tid = null
     var errs = []
+    var sid = 0
 
-    return fn(once(success), once(failure))
+    var succeed = once(success)
+    var fail = once(failure)
 
-    function success () {
-      debug('success')
-      retries = options.retries || 7
-      backo.reset()
+    return retry()
+
+    function retry () {
+      var succeed = once(success(sid))
+      var fail = once(failure)
+      tid = setTimeout(failure, timeout)
+      return fn(succeed, fail)
+    }
+
+    function success (id) {
+      return function () {
+        if (sid !== id) return
+        debug('success')
+        tid && clearTimeout(tid)
+        retries = options.retries || 7
+        backo.reset()
+      }
     }
 
     function failure (err) {
       debug('failure')
 
-      if (err) errs.push(err)
+      tid && clearTimeout(tid)
+      err && errs.push(err)
+
+      // don't let an old success id get called
+      // after we've called failure. this does
+      // not apply the other way, you can call
+      // failure after you call success
+      sid++
 
       if (!--retries) {
         errs = uniq(errs, function (err) {
@@ -43,9 +67,7 @@ function Again (options) {
         return unsuccessful(errors(errs))
       }
 
-      setTimeout(function () {
-        fn(once(success), once(failure))
-      }, backo.duration())
+      setTimeout(retry, backo.duration())
     }
   }
 }
