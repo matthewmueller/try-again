@@ -1,7 +1,7 @@
 
 # try-again
 
-  Generic, simple retry module with exponential backoff
+  Generic, simple retry module with exponential backoff.
 
 ## Installation
 
@@ -13,7 +13,13 @@ npm install try-again
 
 ```
 var Again = require('try-again')
-var again = Again(function (err) {
+var again = Again({
+  retries: 8,
+  max: 10000,
+  jitter: .2,
+  factor: 2,
+  min: 100
+}, function unsuccessful (err) {
   console.error({
     message: 'aborting, tried too many times'
     error: err.stack || err
@@ -30,7 +36,8 @@ var client = again(function (success, failure) {
 ```
 
 `success` and `failure` are not meant to be called one time they are more like switches
-that can be triggered whenever there's a connection or disconnection.
+that can be triggered whenever there's a connection or disconnection. The failure case
+will call this function again, so it's important it properly resets the client each time.
 
 ## License
 
