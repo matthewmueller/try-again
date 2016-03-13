@@ -37,9 +37,7 @@ function unsuccessful (err) {
 }
 ```
 
-`success` and `failure` are not meant to be called one time they are more like switches
-that can be triggered whenever there's a connection or disconnection. The failure case
-will call this function again, so it's important it properly resets the client each time.
+`failure` may be called after `success` has been called, but `success` will be a noop if `failure` has been called. This is to prevent multiple `success` functions from running if the connection is eventually successful.
 
 ## License
 
