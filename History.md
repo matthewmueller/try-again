@@ -1,4 +1,10 @@
 
+1.0.2 / 2016-03-14
+==================
+
+  * add default jitter and place unsuccessful into the instance
+  * update the readme
+
 1.0.1 / 2016-03-14
 ==================
 
