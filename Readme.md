@@ -19,11 +19,6 @@ var again = Again({
   jitter: .2,
   factor: 2,
   min: 100
-}, function unsuccessful (err) {
-  console.error({
-    message: 'aborting, tried too many times'
-    error: err.stack || err
-  })
 })
 
 var client = again(function (success, failure) {
@@ -32,7 +27,14 @@ var client = again(function (success, failure) {
   client.once('close', failure)
   client.once('error', failure)
   return client
-})
+}, unsuccessful)
+
+function unsuccessful (err) {
+  console.error({
+    message: 'aborting, tried too many times'
+    error: err.stack || err
+  })
+}
 ```
 
 `success` and `failure` are not meant to be called one time they are more like switches

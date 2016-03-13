@@ -12,11 +12,13 @@ var once = require('once')
  * Export `again`
  */
 
-function Again (options, unsuccessful) {
-  if (typeof options === 'function') unsuccessful = options, options = {}
+function Again (options) {
   options = options || {}
+  options.jitter = options.jitter || .3
 
-  return function again (fn) {
+  return function again (fn, unsuccessful) {
+    unsuccessful = unsuccessful || function(){}
+
     var retries = options.retries || 7
     var backo = new Backoff(options)
     var errs = []
