@@ -11,7 +11,7 @@ npm install try-again
 
 ## Usage
 
-```
+```js
 var Again = require('try-again')
 var again = Again({
   retries: 8,
