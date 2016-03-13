@@ -6,6 +6,7 @@ var errors = require('combine-errors')
 var debug = require('debug')('again')
 var uniq = require('lodash.uniqby')
 var Backoff = require('backo')
+var once = require('once')
 
 /**
  * Export `again`
@@ -20,7 +21,7 @@ function Again (options, unsuccessful) {
     var backo = new Backoff(options)
     var errs = []
 
-    return fn(success, failure)
+    return fn(once(success), once(failure))
 
     function success () {
       debug('success')
@@ -41,7 +42,7 @@ function Again (options, unsuccessful) {
       }
 
       setTimeout(function () {
-        fn(success, failure)
+        fn(once(success), once(failure))
       }, backo.duration())
     }
   }
