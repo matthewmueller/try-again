@@ -1,4 +1,12 @@
 
+2.0.0 / 2016-03-24
+==================
+
+  * updates signature to support successful connections. added tests. fixed some options
+  * update readme
+  * update the readme
+  * use js formatting
+
 1.0.4 / 2016-03-14
 ==================
 
