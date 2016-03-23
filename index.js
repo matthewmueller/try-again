@@ -20,14 +20,16 @@ module.exports = Again
 
 function Again (options) {
   options = options || {}
-  options.jitter = options.jitter || .3
-  options.timeout = options.timeout || 5000
 
-  return function again (fn, unsuccessful) {
-    unsuccessful = unsuccessful || function(){}
-    var timeout = options.timeout || 5000
-    var retries = options.retries || 7
+  options.timeout = options.timeout === undefined ? 5000 : options.timeout
+  options.retries = options.retries === undefined ? 7 : options.retries
+  options.jitter = options.jitter === undefined ? 0.3 : options.jitter
+
+  return function again (fn, status) {
     var backo = new Backoff(options)
+    status = status || function(){}
+    var timeout = options.timeout
+    var retries = options.retries
     var tid = null
     var errs = []
     var sid = 0
@@ -40,7 +42,10 @@ function Again (options) {
     function retry () {
       var succeed = once(success(sid))
       var fail = once(failure)
-      tid = setTimeout(failure, timeout)
+      tid = setTimeout(function() {
+        debug('timed out after %sms', timeout)
+        failure()
+      }, timeout)
       return fn(succeed, fail)
     }
 
@@ -49,8 +54,9 @@ function Again (options) {
         if (sid !== id) return
         debug('success')
         tid && clearTimeout(tid)
-        retries = options.retries || 7
+        retries = options.retries
         backo.reset()
+        status(null)
       }
     }
 
@@ -70,10 +76,15 @@ function Again (options) {
         errs = uniq(errs, function (err) {
           return err.message
         })
-        return unsuccessful(errors(errs))
+        return status(errors(errs))
       }
 
-      setTimeout(retry, backo.duration())
+      var duration = backo.duration()
+      debug('sleeping for %sms', duration)
+      setTimeout(function() {
+        debug('trying again')
+        retry()
+      }, duration)
     }
   }
 }

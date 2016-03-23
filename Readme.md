@@ -27,9 +27,9 @@ var client = again(function (success, failure) {
   client.once('close', failure)
   client.once('error', failure)
   return client
-}, unsuccessful)
+}, status)
 
-function unsuccessful (err) {
+function status (err) {
   console.error({
     message: 'aborting, tried too many times'
     error: err.stack || err
@@ -37,9 +37,19 @@ function unsuccessful (err) {
 }
 ```
 
+## Notes
+
+**Everything inside the `again` function should be idempotent**
+
+The function inside `again` will be called multiple times when there is a failure, so it's important that you don't have existing event emitters and other things hanging around. You should create a new client inside this function each time.
+
+**The success function only works once and only if failure has not already been called**
+
 `failure` may be called after `success` has been called, but `success` will be a noop if `failure` has been called. This is to prevent multiple `success` functions from running if the connection is eventually successful.
 
-The function inside `again` will be called multiple times when there is a failure, so it's important that everything inside that function is idempotent.
+**The status function will be called each time there is a successful connection, but will only error once**
+
+This `status` function is where you should log connections or set `connected` state. If there is an `err`, it means that we tried connecting `retry` number of times and failed every time.
 
 ## License
 
