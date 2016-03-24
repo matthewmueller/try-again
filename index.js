@@ -25,9 +25,11 @@ function Again (options) {
   options.retries = options.retries === undefined ? 7 : options.retries
   options.jitter = options.jitter === undefined ? 0.3 : options.jitter
 
-  return function again (fn, status) {
-    var backo = new Backoff(options)
+  return function again (fn, status, done) {
     status = status || function(){}
+    done = done || function(){}
+
+    var backo = new Backoff(options)
     var timeout = options.timeout
     var retries = options.retries
     var tid = null
@@ -56,6 +58,7 @@ function Again (options) {
         tid && clearTimeout(tid)
         retries = options.retries
         backo.reset()
+        // report a success
         status(null)
       }
     }
@@ -72,11 +75,14 @@ function Again (options) {
       // failure after you call success
       sid++
 
+      // report a failure
+      status(err)
+
       if (!--retries) {
         errs = uniq(errs, function (err) {
           return err.message
         })
-        return status(errors(errs))
+        return done(errors(errs))
       }
 
       var duration = backo.duration()

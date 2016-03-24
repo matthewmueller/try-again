@@ -27,9 +27,19 @@ var client = again(function (success, failure) {
   client.once('close', failure)
   client.once('error', failure)
   return client
-}, status)
+}, status, failed)
 
 function status (err) {
+  if (err) {
+    // there was a failure
+    // update connection state accordingly
+  } else {
+    // there was a success
+    // update connection state accordingly
+  }
+}
+
+function failed (err) {
   console.error({
     message: 'aborting, tried too many times'
     error: err.stack || err
@@ -37,19 +47,30 @@ function status (err) {
 }
 ```
 
-## Notes
+## Design
 
 **Everything inside the `again` function should be idempotent**
 
 The function inside `again` will be called multiple times when there is a failure, so it's important that you don't have existing event emitters and other things hanging around. You should create a new client inside this function each time.
 
-**The success function only works once and only if failure has not already been called**
+**The `success` function only works once and only if `failure` has not already been called**
 
 `failure` may be called after `success` has been called, but `success` will be a noop if `failure` has been called. This is to prevent multiple `success` functions from running if the connection is eventually successful.
 
-**The status function will be called each time there is a successful connection, but will only error once**
+**The `status` function will be called each time there is an update, either a successful connection or a failure**
 
-This `status` function is where you should log connections or set `connected` state. If there is an `err`, it means that we tried connecting `retry` number of times and failed every time.
+If there is a failure, the `err` parameter will be populated. This function may be called multiple times. It's a good place for logging connection status and setting "connected" state.
+
+**The `failed` function will only be called if the number of attempts to connect have exceeded the retries option**
+
+If the `failed` function is called, it won't try anymore. You probably want to handle this case by failing fast and killing the process.
+
+## Running Tests
+
+```
+npm install
+make test
+```
 
 ## License
 

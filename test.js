@@ -44,12 +44,17 @@ describe('tryagain', function() {
     })
 
     var again = Again({ max: 200 })
+    var called = 0
     again(function (success, failure) {
       var c = client()
       c.on('success', success)
       c.on('failure', failure)
     }, function(err) {
       assert.equal(err.message, 'failure')
+      called++
+    }, function(err) {
+      assert.equal(err.message, 'failure')
+      assert.equal(called, 7)
       done()
     })
   })
@@ -60,12 +65,18 @@ describe('tryagain', function() {
     })
 
     var again = Again({ retries: 2, max: 200 })
+    var called = 0
+
     again(function (success, failure) {
       var c = client()
       c.on('success', success)
       c.on('failure', failure)
     }, function(err) {
       assert.equal(err.message, 'failure')
+      called++
+    }, function(err) {
+      assert.equal(err.message, 'failure')
+      assert.equal(called, 2)
       done()
     })
   })
@@ -77,10 +88,19 @@ describe('tryagain', function() {
     })
 
     var again = Again()
+    var called = 0
     again(function (success, failure) {
       var c = client()
       c.on('success', success)
       c.on('failure', failure)
+    }, function(err) {
+      if (err) {
+        assert.equal(err.message, 'failure')
+        called++
+      } else {
+        assert.equal(called, 1)
+        done()
+      }
     }, done)
   })
 
@@ -91,15 +111,24 @@ describe('tryagain', function() {
     })
 
     var again = Again()
-    var connected = 2
+    var successes = 0
+    var failures = 0
     again(function (success, failure) {
       var c = client()
       c.on('success', success)
       c.on('failure', failure)
     }, function(err) {
-      if (err) return done(err)
-      if (!--connected) done()
-    })
+      if (err) {
+        failures++
+        assert.equal(err.message, 'failure')
+      } else {
+        successes++
+        if (successes === 2) {
+          assert.equal(failures, 2)
+          done()
+        }
+      }
+    }, done)
   })
 
   it('should eventually connect after timeouts', function(done) {
