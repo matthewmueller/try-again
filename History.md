@@ -1,4 +1,9 @@
 
+3.0.0 / 2016-03-24
+==================
+
+  * status now reports both successes and failures. added failed function when the failed attempts exceeds the retry threshold
+
 2.0.0 / 2016-03-24
 ==================
 
