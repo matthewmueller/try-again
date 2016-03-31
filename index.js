@@ -46,7 +46,7 @@ function Again (options) {
       var fail = once(failure)
       tid = setTimeout(function() {
         debug('timed out after %sms', timeout)
-        failure()
+        failure(new Error('operation timed out'))
       }, timeout)
       return fn(succeed, fail)
     }
