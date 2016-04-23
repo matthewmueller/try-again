@@ -21,8 +21,8 @@ module.exports = Again
 function Again (options) {
   options = options || {}
 
-  options.timeout = options.timeout === undefined ? 5000 : options.timeout
-  options.retries = options.retries === undefined ? 7 : options.retries
+  options.timeout = options.timeout === undefined ? 10000 : options.timeout
+  options.retries = options.retries === undefined ? Infinity : options.retries
   options.jitter = options.jitter === undefined ? 0.3 : options.jitter
 
   return function again (fn, status, done) {
