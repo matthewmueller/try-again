@@ -6,6 +6,7 @@ var errors = require('combine-errors')
 var debug = require('debug')('again')
 var uniq = require('lodash.uniqby')
 var Backoff = require('backo')
+var sliced = require('sliced')
 var once = require('once')
 
 /**
@@ -59,7 +60,7 @@ function Again (options) {
         retries = options.retries
         backo.reset()
         // report a success
-        status(null)
+        status.apply(null, [null].concat(sliced(arguments)))
       }
     }
 
