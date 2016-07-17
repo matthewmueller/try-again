@@ -3,6 +3,15 @@
 
   Generic, simple retry module with exponential backoff.
 
+## Features
+
+- Easy to understand the different states
+- Safe functions by design (see below)
+- Exponential backoff
+- Supports timeouts
+- Fatal errors
+- Retries
+
 ## Installation
 
 ```js
@@ -21,7 +30,9 @@ var again = Again({
   min: 100
 })
 
-var client = again(function (success, failure) {
+// this function will get re-called each time there is
+// failure, unless retries is 0
+var client = again(function (success, failure, fatal) {
   var client = new Client(url)
   client.once('connected', success)
   client.once('close', failure)
@@ -29,6 +40,9 @@ var client = again(function (success, failure) {
   return client
 }, status, failed)
 
+// this function will get called whenever one of the
+// 3 functions: success, failure, or fatal get called.
+// This function is often used to update connection state.
 function status (err) {
   if (err) {
     // there was a failure
@@ -39,6 +53,10 @@ function status (err) {
   }
 }
 
+// this function is used when the retries have been
+// exhausted or the fatal function has been called.
+// at this point, there will be no more retries and
+// you should consider crashing the process.
 function failed (err) {
   console.error({
     message: 'aborting, tried too many times'
@@ -65,6 +83,10 @@ If there is a failure, the `err` parameter will be populated. This function may 
 
 If the `failed` function is called, it won't try anymore. You probably want to handle this case by failing fast and killing the process.
 
+**The `fatal` function may be used to trigger the `failed` function even if there are retries available.**
+
+You can use the fatal function to skip retrying. Like the `failure` function, the `fatal` function may be called after an initial `success` function, but cannot be called after the `failure` function has previously been called for that cycle.
+
 ## Running Tests
 
 ```
@@ -74,25 +96,4 @@ make test
 
 ## License
 
-(The MIT License)
-
-Copyright (c) 2016 Matthew Mueller &lt;mattmuelle@gmail.com&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+MIT
