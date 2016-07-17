@@ -67,6 +67,8 @@ function failed (err) {
 
 ## Design
 
+You don't need to know the details of how this works to use this module, but if you're interested in knowing how the different states may interact, this should help explain things.
+
 **Everything inside the `again` function should be idempotent**
 
 The function inside `again` will be called multiple times when there is a failure, so it's important that you don't have existing event emitters and other things hanging around. You should create a new client inside this function each time.
