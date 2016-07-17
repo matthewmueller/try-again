@@ -1,4 +1,12 @@
 
+4.0.2 / 2016-07-17
+==================
+
+  * update the readme
+  * fix tests for 4.x
+  * add fatal function to crash and burn
+  * add a memory check
+
 4.0.1 / 2016-04-25
 ==================
 
