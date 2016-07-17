@@ -43,16 +43,16 @@ describe('tryagain', function() {
       failure: [100, 100, 100, 100, 100, 100, 100, 100, 100]
     })
 
-    var again = Again({ max: 200 })
+    var again = Again({ max: 200, retries: 7 })
     var called = 0
     again(function (success, failure) {
       var c = client()
       c.on('success', success)
       c.on('failure', failure)
-    }, function(err) {
+    }, function status (err) {
       assert.equal(err.message, 'failure')
       called++
-    }, function(err) {
+    }, function failed (err) {
       assert.equal(err.message, 'failure')
       assert.equal(called, 7)
       done()
@@ -137,12 +137,48 @@ describe('tryagain', function() {
     })
 
     var again = Again({ timeout: 200, jitter: 0, min: 80 })
-    var connected = 2
+    var connected = 3
     again(function (success, failure) {
       var c = client()
       c.on('success', success)
       c.on('failure', failure)
+    }, function status(err) {
+      if (--connected) {
+        assert.equal(err.message, 'operation timed out')
+      } else {
+        assert.equal(err, null)
+        done(err)
+      }
     }, done)
+  })
+
+  it('should allow you to fail completely and not retry again', function(done) {
+    var client = Client({
+      success: [500, 300, 100]
+    })
+
+    var again = Again({ timeout: 200, jitter: 0, min: 80 })
+    var retried = 3
+    var called = 0
+    again(function (success, failure, fatal) {
+      var c = client()
+      c.on('success', success)
+      c.on('failure', failure)
+      if (!--retried) {
+        return fatal(new Error('abruptly exited'))
+      }
+    }, function status (err) {
+      called++
+      if (retried && err) {
+        assert.equal(err.message, 'operation timed out')
+      } else {
+        assert.equal(err.message, 'abruptly exited')
+      }
+    }, function (err) {
+      assert.equal(called, 3)
+      assert.equal(err.message, 'operation timed out; abruptly exited')
+      done()
+    })
   })
 })
 

@@ -26,9 +26,12 @@ function Again (options) {
   options.retries = options.retries === undefined ? Infinity : options.retries
   options.jitter = options.jitter === undefined ? 0.3 : options.jitter
 
-  return function again (fn, status, done) {
+  return function again (fn, status, failed) {
     status = status || function(){}
-    done = done || function(){}
+    failed = failed || function(){}
+
+    // only let failed get called once
+    failed = once(failed)
 
     var backo = new Backoff(options)
     var timeout = options.timeout
@@ -37,19 +40,18 @@ function Again (options) {
     var errs = []
     var sid = 0
 
-    var succeed = once(success)
-    var fail = once(failure)
-
     return retry()
 
     function retry () {
       var succeed = once(success(sid))
+      var exit = once(fatal(sid))
       var fail = once(failure)
+
       tid = setTimeout(function() {
         debug('timed out after %sms', timeout)
         failure(new Error('operation timed out'))
       }, timeout)
-      return fn(succeed, fail)
+      return fn(succeed, fail, exit)
     }
 
     function success (id) {
@@ -79,11 +81,11 @@ function Again (options) {
       // report a failure
       status(err)
 
-      if (!--retries) {
+      if (--retries <= 0) {
         errs = uniq(errs, function (err) {
           return err.message
         })
-        return done(errors(errs))
+        return failed(errors(errs))
       }
 
       var duration = backo.duration()
@@ -92,6 +94,27 @@ function Again (options) {
         debug('trying again')
         retry()
       }, duration)
+    }
+
+    // fatal is a condition where we don't
+    // want to retry and we just want to
+    // fail completely. we don't want to call
+    // this after failure has already been
+    // called, so we use the id. This can
+    // be called after success has been
+    // called though.
+    function fatal (id) {
+      return function (err) {
+        if (sid !== id) return
+        debug('fatal')
+
+        // set the retries to 0
+        // so we don't retry again
+        retries = 0
+
+        // call failure
+        return failure(err)
+      }
     }
   }
 }
