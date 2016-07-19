@@ -31,7 +31,7 @@ var again = Again({
 })
 
 // this function will get re-called each time there is
-// failure, unless retries is 0
+// failure, unless retries is 0 or fatal(...) is called
 var client = again(function (success, failure, fatal) {
   var client = new Client(url)
   client.once('connected', success)
